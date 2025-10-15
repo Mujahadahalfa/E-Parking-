@@ -1,0 +1,1495 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Parking System | Solusi Parkir Digital Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-dark: #1e3a8a;
+            --secondary: #0ea5e9;
+            --accent: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+        }
+        
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        }
+        
+        .parking-slot {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .parking-slot:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .occupied {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+        .available {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+        .reserved {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+        }
+        .car-animation {
+            transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .dashboard-card {
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .scanner-animation {
+            animation: scan 2s ease-in-out infinite;
+        }
+        @keyframes scan {
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
+        }
+        .qr-code-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        .receipt {
+            background: linear-gradient(to bottom right, #f8fafc, #e2e8f0);
+            border-left: 4px solid var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { transform: scale(1.02); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+        .form-input:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            border-color: var(--accent);
+        }
+        .success-message {
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .loading-spinner {
+            border: 2px solid rgba(243, 243, 243, 0.3);
+            border-top: 2px solid var(--accent);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-message {
+            background-color: #fee2e2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        .section-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(30, 64, 175, 0.3), transparent);
+        }
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 15px rgba(30, 64, 175, 0.3);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #475569, #64748b);
+            transition: all 0.3s ease;
+        }
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 15px rgba(71, 85, 105, 0.3);
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: white;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .feature-card {
+            transition: all 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Status Cards Styling */
+        .status-card {
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .status-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+        .status-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+        .status-card.total {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-left: 5px solid var(--primary);
+        }
+        .status-card.available {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            border-left: 5px solid var(--success);
+        }
+        .status-card.occupied {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border-left: 5px solid var(--danger);
+        }
+        .status-card.active {
+            background: linear-gradient(135deg, #fefce8, #fef9c3);
+            border-left: 5px solid var(--warning);
+        }
+        
+        /* Status Indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-indicator.total { background-color: var(--primary); }
+        .status-indicator.available { background-color: var(--success); }
+        .status-indicator.occupied { background-color: var(--danger); }
+        .status-indicator.active { background-color: var(--warning); }
+        
+        /* Parking slot grid for 10 slots */
+        .parking-grid-10 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        /* Scanner Styles */
+        .scanner-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .scanner-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .scanner-frame {
+            width: 250px;
+            height: 250px;
+            border: 2px solid white;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+        .scanner-line {
+            position: absolute;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            top: 50%;
+            animation: scan-line 2s linear infinite;
+        }
+        @keyframes scan-line {
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
+        }
+        .scanner-corners {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .scanner-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border-color: #10b981;
+            border-width: 3px;
+        }
+        .scanner-corner.tl {
+            top: 0;
+            left: 0;
+            border-top-style: solid;
+            border-left-style: solid;
+            border-top-left-radius: 8px;
+        }
+        .scanner-corner.tr {
+            top: 0;
+            right: 0;
+            border-top-style: solid;
+            border-right-style: solid;
+            border-top-right-radius: 8px;
+        }
+        .scanner-corner.bl {
+            bottom: 0;
+            left: 0;
+            border-bottom-style: solid;
+            border-left-style: solid;
+            border-bottom-left-radius: 8px;
+        }
+        .scanner-corner.br {
+            bottom: 0;
+            right: 0;
+            border-bottom-style: solid;
+            border-right-style: solid;
+            border-bottom-right-radius: 8px;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            /* Hide footer on mobile */
+            footer {
+                display: none !important;
+            }
+
+            /* Header adjustments */
+            header .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            /* Hero section adjustments */
+            .hero-section h2 {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+
+            .hero-section p {
+                font-size: 1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .hero-buttons a {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Section padding adjustments */
+            section {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            /* Dashboard adjustments */
+            .status-card {
+                padding: 1rem;
+            }
+
+            .status-card .text-4xl {
+                font-size: 1.875rem;
+            }
+
+            .parking-grid-10 {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+
+            /* QR Generator adjustments */
+            .qr-generator-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .qr-form-container, .qr-display-container {
+                padding: 1.5rem;
+            }
+
+            /* Simulation adjustments */
+            .simulation-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scanner-frame {
+                width: 200px;
+                height: 200px;
+            }
+
+            /* Feature cards adjustments */
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            /* Button adjustments */
+            .btn-mobile {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Text size adjustments */
+            .mobile-text-lg {
+                font-size: 1.125rem;
+            }
+
+            .mobile-text-xl {
+                font-size: 1.25rem;
+            }
+
+            .mobile-text-2xl {
+                font-size: 1.5rem;
+            }
+
+            .mobile-text-3xl {
+                font-size: 1.875rem;
+            }
+
+            /* Parking visualization adjustments */
+            .parking-visualization {
+                padding: 1rem;
+            }
+
+            .car-animation-container {
+                padding: 1rem;
+            }
+
+            /* Form adjustments */
+            .form-input {
+                padding: 0.75rem;
+            }
+
+            /* QR code display adjustments */
+            .qr-code-container {
+                padding: 1rem;
+            }
+
+            #qr-code, #sim-qr-code {
+                transform: scale(0.9);
+            }
+
+            /* Receipt adjustments */
+            .receipt {
+                padding: 1rem;
+            }
+
+            /* System info adjustments */
+            .system-info {
+                min-height: 80px;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .parking-grid-10 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .status-cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section h2 {
+                font-size: 1.75rem;
+            }
+
+            .scanner-frame {
+                width: 180px;
+                height: 180px;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="bg-white p-2 rounded-xl mr-3 shadow-lg">
+                    <i class="fas fa-qrcode text-blue-600 text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl mobile-text-xl font-bold">E-Parking System</h1>
+                    <p class="text-xs text-blue-100 hidden sm:block">Solusi Parkir Digital Modern</p>
+                </div>
+            </div>
+            <nav class="hidden md:block">
+                <ul class="flex space-x-8">
+                    <li><a href="#dashboard" class="nav-link text-white font-medium transition-colors">Dashboard</a></li>
+                    <li><a href="#generate" class="nav-link text-white font-medium transition-colors">Generate QR</a></li>
+                    <li><a href="#simulation" class="nav-link text-white font-medium transition-colors">Simulasi</a></li>
+                    <li><a href="#workflow" class="nav-link text-white font-medium transition-colors">Alur Kerja</a></li>
+                </ul>
+            </nav>
+            <button id="mobile-menu-btn" class="md:hidden text-white bg-white bg-opacity-20 p-2 rounded-lg">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden bg-blue-800 py-3 px-4 hidden">
+            <ul class="flex flex-col space-y-3">
+                <li><a href="#dashboard" class="text-white font-medium py-2 block border-b border-blue-700">Dashboard</a></li>
+                <li><a href="#generate" class="text-white font-medium py-2 block border-b border-blue-700">Generate QR</a></li>
+                <li><a href="#simulation" class="text-white font-medium py-2 block border-b border-blue-700">Simulasi</a></li>
+                <li><a href="#workflow" class="text-white font-medium py-2 block">Alur Kerja</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="gradient-bg text-white py-12 hero-section">
+            <div class="container mx-auto px-4">
+                <div class="max-w-3xl mx-auto text-center">
+                    <h2 class="text-4xl mobile-text-3xl font-bold mb-4">Solusi Parkir Digital dengan Teknologi QR Code</h2>
+                    <p class="text-xl mobile-text-lg text-blue-100 mb-8">Tingkatkan efisiensi dan kenyamanan sistem parkir Anda dengan teknologi terkini</p>
+                    <div class="flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4 hero-buttons">
+                        <a href="#generate" class="btn-primary text-white py-3 px-6 rounded-lg font-medium inline-flex items-center justify-center btn-mobile">
+                            <i class="fas fa-qrcode mr-2"></i> Generate QR Code
+                        </a>
+                        <a href="#simulation" class="bg-white text-blue-600 py-3 px-6 rounded-lg font-medium hover:bg-blue-50 transition duration-300 inline-flex items-center justify-center btn-mobile">
+                            <i class="fas fa-play-circle mr-2"></i> Coba Simulasi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="py-12 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl mobile-text-2xl font-bold text-gray-800 mb-3 section-title">Dashboard E-Parking</h2>
+                    <div class="section-divider w-24 mx-auto my-4"></div>
+                    <p class="text-gray-600 max-w-2xl mx-auto mobile-text-lg">Pantau status parkir secara real-time dengan dashboard yang informatif dan mudah dipahami</p>
+                </div>
+                
+                <!-- Status Cards Section -->
+                <div class="mb-12">
+                    <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-6 text-center">Status Parkir Saat Ini</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 status-cards-grid">
+                        <div class="status-card total">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator total"></span>
+                                        Total Slot Parkir
+                                    </p>
+                                    <p class="text-4xl mobile-text-3xl font-bold text-blue-600" id="total-slots-dash">10</p>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-parking text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">Jumlah keseluruhan slot parkir</p>
+                        </div>
+                        
+                        <div class="status-card available">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator available"></span>
+                                        Slot Tersedia
+                                    </p>
+                                    <p class="text-4xl mobile-text-3xl font-bold text-green-600" id="available-slots-dash">0</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">Slot parkir yang dapat digunakan</p>
+                        </div>
+                        
+                        <div class="status-card occupied">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator occupied"></span>
+                                        Slot Terisi
+                                    </p>
+                                    <p class="text-4xl mobile-text-3xl font-bold text-red-600" id="occupied-slots-dash">0</p>
+                                </div>
+                                <div class="bg-red-100 p-3 rounded-full">
+                                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">Slot parkir yang sedang digunakan</p>
+                        </div>
+                        
+                        <div class="status-card active">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator active"></span>
+                                        Tiket Aktif
+                                    </p>
+                                    <p class="text-4xl mobile-text-3xl font-bold text-yellow-600" id="active-tickets-dash">0</p>
+                                </div>
+                                <div class="bg-yellow-100 p-3 rounded-full">
+                                    <i class="fas fa-ticket-alt text-yellow-600 text-xl"></i>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 mt-4">Tiket parkir yang sedang aktif</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-2xl p-4 md:p-6 shadow-lg border border-gray-100">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                        <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-4 md:mb-0">Status Parkir Real-time</h3>
+                        <div class="flex flex-wrap gap-3 md:gap-4">
+                            <span class="flex items-center text-sm"><div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div> Tersedia</span>
+                            <span class="flex items-center text-sm"><div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div> Terisi</span>
+                            <span class="flex items-center text-sm"><div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div> Dipesan</span>
+                        </div>
+                    </div>
+                    <div class="parking-grid-10" id="dashboard-slots">
+                        <!-- Parking slots will be generated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Generate QR Section -->
+        <section id="generate" class="py-12 md:py-16 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8 md:mb-12">
+                    <h2 class="text-3xl mobile-text-2xl font-bold text-gray-800 mb-3 section-title">Generate QR Code Parkir</h2>
+                    <div class="section-divider w-24 mx-auto my-4"></div>
+                    <p class="text-gray-600 max-w-2xl mx-auto mobile-text-lg">Buat QR code untuk reservasi parkir atau tiket masuk dengan mudah dan cepat</p>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 qr-generator-grid">
+                    <!-- QR Generator Form -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg qr-form-container">
+                        <h3 class="text-2xl mobile-text-xl font-bold text-gray-800 mb-6">Form Generate QR Code</h3>
+                        
+                        <form id="qr-form" class="space-y-6">
+                            <div>
+                                <label class="block text-gray-700 mb-3 font-medium" for="vehicle-number">
+                                    <i class="fas fa-car mr-2 text-blue-500"></i>Nomor Kendaraan
+                                </label>
+                                <input type="text" id="vehicle-number" class="w-full px-4 py-3 border border-gray-300 rounded-lg form-input focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: B 1234 XYZ" required>
+                                <p class="text-xs text-gray-500 mt-2">Masukkan nomor polisi kendaraan Anda</p>
+                                <div id="vehicle-error" class="error-message hidden"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-3 font-medium" for="vehicle-type">
+                                    <i class="fas fa-truck-pickup mr-2 text-blue-500"></i>Jenis Kendaraan
+                                </label>
+                                <select id="vehicle-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg form-input focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Pilih Jenis Kendaraan</option>
+                                    <option value="motorcycle">Motor (Rp 3.000/jam)</option>
+                                    <option value="car">Mobil (Rp 5.000/jam)</option>
+                                    <option value="truck">Truk (Rp 10.000/jam)</option>
+                                </select>
+                                <div id="vehicle-type-error" class="error-message hidden"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-3 font-medium" for="duration">
+                                    <i class="fas fa-clock mr-2 text-blue-500"></i>Durasi Parkir
+                                </label>
+                                <select id="duration" class="w-full px-4 py-3 border border-gray-300 rounded-lg form-input focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Pilih Durasi</option>
+                                    <option value="1">1 Jam</option>
+                                    <option value="2">2 Jam</option>
+                                    <option value="3">3 Jam</option>
+                                    <option value="4">4 Jam</option>
+                                    <option value="8">8 Jam</option>
+                                    <option value="24">24 Jam</option>
+                                </select>
+                                <div id="duration-error" class="error-message hidden"></div>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-gray-700 mb-3 font-medium" for="parking-type">
+                                    <i class="fas fa-map-marker-alt mr-2 text-blue-500"></i>Jenis Parkir
+                                </label>
+                                <select id="parking-type" class="w-full px-4 py-3 border border-gray-300 rounded-lg form-input focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                    <option value="">Pilih Jenis</option>
+                                    <option value="regular">Reguler</option>
+                                    <option value="reserved">Reservasi</option>
+                                    <option value="priority">Prioritas</option>
+                                </select>
+                                <div id="parking-type-error" class="error-message hidden"></div>
+                            </div>
+                            
+                            <div class="pt-4">
+                                <button type="submit" id="generate-btn" class="w-full btn-primary text-white py-4 px-4 rounded-lg font-medium flex items-center justify-center btn-mobile">
+                                    <i class="fas fa-qrcode mr-2"></i><span id="btn-text">Generate QR Code</span>
+                                    <div id="loading-spinner" class="loading-spinner hidden ml-2"></div>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- QR Code Display -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg qr-display-container">
+                        <h3 class="text-2xl mobile-text-xl font-bold text-gray-800 mb-6">QR Code Parkir</h3>
+                        
+                        <div class="text-center">
+                            <div id="qr-placeholder" class="bg-gray-50 p-6 md:p-10 rounded-2xl border-2 border-dashed border-gray-300">
+                                <i class="fas fa-qrcode text-gray-400 text-5xl md:text-7xl mb-4"></i>
+                                <p class="text-gray-500 text-base md:text-lg">QR Code akan muncul di sini setelah mengisi form</p>
+                                <p class="text-sm text-gray-400 mt-2">Isi form di sebelah kiri dan klik "Generate QR Code"</p>
+                            </div>
+                            
+                            <div id="qr-result" class="hidden fade-in">
+                                <div class="success-message bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-green-500 text-xl mr-2"></i>
+                                        <span class="text-green-700 font-medium">QR Code berhasil digenerate!</span>
+                                    </div>
+                                    <p class="text-green-600 text-sm mt-1">Tiket parkir Anda siap digunakan</p>
+                                </div>
+                                
+                                <div class="qr-code-container mx-auto mb-6">
+                                    <div id="qr-code"></div>
+                                </div>
+                                
+                                <div class="receipt p-4 md:p-5 rounded-xl mb-6 text-left">
+                                    <div class="text-center mb-4">
+                                        <h4 class="font-bold text-lg md:text-xl">E-PARKING TICKET</h4>
+                                        <p class="text-sm text-gray-600" id="ticket-id">ID: EP-2023-001</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 text-sm">
+                                        <div class="font-medium">Nomor Kendaraan:</div>
+                                        <div id="receipt-vehicle">B 1234 XYZ</div>
+                                        
+                                        <div class="font-medium">Jenis Kendaraan:</div>
+                                        <div id="receipt-vehicle-type">Mobil</div>
+                                        
+                                        <div class="font-medium">Durasi:</div>
+                                        <div id="receipt-duration">2 Jam</div>
+                                        
+                                        <div class="font-medium">Jenis Parkir:</div>
+                                        <div id="receipt-type">Reguler</div>
+                                        
+                                        <div class="font-medium">Biaya:</div>
+                                        <div id="receipt-cost">Rp 9.000</div>
+                                        
+                                        <div class="font-medium">Waktu Generate:</div>
+                                        <div id="receipt-time">10:30:15</div>
+                                    </div>
+                                    <div class="mt-4 pt-4 border-t border-gray-300 text-center">
+                                        <p class="text-xs text-gray-600">Tunjukkan QR code ini di pintu masuk</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                                    <button id="print-btn" class="flex-1 btn-secondary text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center btn-mobile">
+                                        <i class="fas fa-print mr-2"></i>Cetak
+                                    </button>
+                                    <button id="save-btn" class="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-green-700 transition duration-300 flex items-center justify-center btn-mobile">
+                                        <i class="fas fa-download mr-2"></i>Simpan QR
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Simulation Section -->
+        <section id="simulation" class="py-12 md:py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8 md:mb-12">
+                    <h2 class="text-3xl mobile-text-2xl font-bold text-gray-800 mb-3 section-title">Simulasi E-Parking</h2>
+                    <div class="section-divider w-24 mx-auto my-4"></div>
+                    <p class="text-gray-600 max-w-2xl mx-auto mobile-text-lg">Coba sendiri sistem parkir dengan QR code secara interaktif</p>
+                </div>
+                
+                <!-- Status Cards in Simulation Section -->
+                <div class="mb-8 md:mb-10">
+                    <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-6 text-center">Status Parkir Saat Ini</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 max-w-3xl mx-auto">
+                        <div class="status-card total">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator total"></span>
+                                        Total Slot
+                                    </p>
+                                    <p class="text-3xl mobile-text-2xl font-bold text-blue-600" id="total-slots">10</p>
+                                </div>
+                                <div class="bg-blue-100 p-3 rounded-full">
+                                    <i class="fas fa-parking text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-card available">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator available"></span>
+                                        Tersedia
+                                    </p>
+                                    <p class="text-3xl mobile-text-2xl font-bold text-green-600" id="available-slots">0</p>
+                                </div>
+                                <div class="bg-green-100 p-3 rounded-full">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="status-card occupied">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-gray-600 font-medium mb-2 flex items-center">
+                                        <span class="status-indicator occupied"></span>
+                                        Terisi
+                                    </p>
+                                    <p class="text-3xl mobile-text-2xl font-bold text-red-600" id="occupied-slots">0</p>
+                                </div>
+                                <div class="bg-red-100 p-3 rounded-full">
+                                    <i class="fas fa-times-circle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10 simulation-grid">
+                    <!-- Parking Visualization -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 parking-visualization">
+                        <h3 class="text-2xl mobile-text-xl font-bold text-gray-800 mb-6">Area Parkir</h3>
+                        
+                        <div class="mb-6 md:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 md:p-5 rounded-xl border border-blue-100 car-animation-container">
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="text-center">
+                                    <div class="bg-green-100 p-2 md:p-3 rounded-full inline-block mb-2 shadow">
+                                        <i class="fas fa-sign-in-alt text-green-600 text-lg md:text-xl"></i>
+                                    </div>
+                                    <p class="font-medium text-sm md:text-base">Pintu Masuk</p>
+                                </div>
+                                <div class="car-animation">
+                                    <i class="fas fa-car text-gray-700 text-2xl md:text-3xl floating" id="animated-car"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="bg-red-100 p-2 md:p-3 rounded-full inline-block mb-2 shadow">
+                                        <i class="fas fa-sign-out-alt text-red-600 text-lg md:text-xl"></i>
+                                    </div>
+                                    <p class="font-medium text-sm md:text-base">Pintu Keluar</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="parking-lot mb-6 md:mb-8">
+                            <div class="parking-grid-10 mb-4" id="simulation-slots">
+                                <!-- Parking slots will be generated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Control Panel -->
+                    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100">
+                        <h3 class="text-2xl mobile-text-xl font-bold text-gray-800 mb-6">Kontrol Simulasi</h3>
+                        
+                        <div class="space-y-6 md:space-y-8">
+                            <div>
+                                <h4 class="font-bold text-gray-700 mb-4 text-lg mobile-text-lg">Tiket QR Code Aktif</h4>
+                                <div id="active-ticket" class="hidden">
+                                    <div class="receipt p-4 md:p-5 rounded-xl mb-4">
+                                        <div class="text-center mb-3">
+                                            <h5 class="font-bold text-lg mobile-text-lg">E-PARKING TICKET</h5>
+                                            <p class="text-sm text-gray-600" id="sim-ticket-id">ID: EP-2023-001</p>
+                                        </div>
+                                        <div class="qr-code-container mx-auto mb-3">
+                                            <div id="sim-qr-code"></div>
+                                        </div>
+                                        <div class="text-center text-sm text-gray-600">
+                                            <p id="sim-vehicle">Kendaraan: B 1234 XYZ</p>
+                                            <p id="sim-entry-time">Generate: 09:30:15</p>
+                                            <p id="sim-status">Status: MENUNGGU SCAN</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="no-ticket" class="text-center p-4 md:p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                                    <i class="fas fa-ticket-alt text-gray-400 text-3xl md:text-4xl mb-3"></i>
+                                    <p class="text-gray-600 text-base md:text-lg">Belum ada tiket aktif</p>
+                                    <p class="text-sm text-gray-500 mt-1">Generate QR code terlebih dahulu</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-gray-700 mb-4 text-lg mobile-text-lg">Pemindaian QR Code</h4>
+                                <div class="scanner-container relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 md:p-6 text-center shadow-lg">
+                                    <!-- Scanner Overlay -->
+                                    <div id="scanner-overlay" class="scanner-overlay">
+                                        <div class="scanner-frame">
+                                            <div class="scanner-line"></div>
+                                            <div class="scanner-corners">
+                                                <div class="scanner-corner tl"></div>
+                                                <div class="scanner-corner tr"></div>
+                                                <div class="scanner-corner bl"></div>
+                                                <div class="scanner-corner br"></div>
+                                            </div>
+                                        </div>
+                                        <div class="absolute bottom-4 left-0 right-0 text-center text-white">
+                                            <p>Pindai QR Code pada tiket...</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-white mb-3 text-base md:text-lg">Arahkan QR code ke scanner</p>
+                                    <div class="bg-white p-3 md:p-4 rounded-xl inline-block mb-3 shadow">
+                                        <i class="fas fa-mobile-alt text-gray-400 text-4xl md:text-5xl"></i>
+                                    </div>
+                                    <button id="scan-btn" class="mt-4 btn-primary text-white py-3 px-6 rounded-lg font-medium w-full btn-mobile">
+                                        <i class="fas fa-camera mr-2"></i>Pindai QR Code
+                                    </button>
+                                    <button id="exit-btn" class="mt-3 bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-6 rounded-lg font-medium hover:from-red-600 hover:to-red-700 transition duration-300 w-full btn-mobile">
+                                        <i class="fas fa-sign-out-alt mr-2"></i>Simulasi Keluar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-bold text-gray-700 mb-4 text-lg mobile-text-lg">Informasi Sistem</h4>
+                                <div class="bg-gray-50 p-4 md:p-5 rounded-xl border border-gray-200 min-h-24 md:min-h-32 shadow-inner system-info">
+                                    <div id="system-info" class="text-gray-700">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                                            <span>Sistem siap. Generate QR code terlebih dahulu.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Section -->
+        <section id="workflow" class="py-12 md:py-16 bg-gradient-to-br from-blue-50 to-indigo-50">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-8 md:mb-12">
+                    <h2 class="text-3xl mobile-text-2xl font-bold text-gray-800 mb-3 section-title">Alur Kerja E-Parking</h2>
+                    <div class="section-divider w-24 mx-auto my-4"></div>
+                    <p class="text-gray-600 max-w-2xl mx-auto mobile-text-lg">Proses parkir dengan QR code yang efisien dan modern</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 feature-grid">
+                    <div class="feature-card bg-white p-6 md:p-8 rounded-2xl shadow-lg text-center">
+                        <div class="bg-blue-100 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow">
+                            <i class="fas fa-qrcode text-blue-600 text-2xl md:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-4">1. Generate QR Code</h3>
+                        <p class="text-gray-600 text-sm md:text-base">Pengguna membuat QR code parkir melalui website atau aplikasi mobile sebelum datang ke lokasi.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white p-6 md:p-8 rounded-2xl shadow-lg text-center">
+                        <div class="bg-green-100 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow">
+                            <i class="fas fa-camera text-green-600 text-2xl md:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-4">2. Scan QR Code</h3>
+                        <p class="text-gray-600 text-sm md:text-base">Di pintu masuk, pengguna memindai QR code untuk membuka palang pintu dan mendapatkan slot parkir.</p>
+                    </div>
+                    
+                    <div class="feature-card bg-white p-6 md:p-8 rounded-2xl shadow-lg text-center">
+                        <div class="bg-purple-100 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow">
+                            <i class="fas fa-money-bill-wave text-purple-600 text-2xl md:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl mobile-text-lg font-bold text-gray-800 mb-4">3. Pembayaran Otomatis</h3>
+                        <p class="text-gray-600 text-sm md:text-base">Sistem menghitung durasi parkir dan melakukan pembayaran otomatis saat keluar melalui QR code.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer - Hidden on Mobile -->
+    <footer class="hidden md:block bg-gradient-to-br from-gray-800 to-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div>
+                    <div class="flex items-center mb-6">
+                        <div class="bg-white p-2 rounded-lg mr-3 shadow">
+                            <i class="fas fa-qrcode text-blue-600"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">E-Parking System</h3>
+                    </div>
+                    <p class="text-gray-400 mb-6">Solusi parkir modern dengan QR code untuk efisiensi dan kenyamanan pengguna.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="bg-gray-700 p-2 rounded-lg hover:bg-gray-600 transition duration-300">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="bg-gray-700 p-2 rounded-lg hover:bg-gray-600 transition duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="bg-gray-700 p-2 rounded-lg hover:bg-gray-600 transition duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="bg-gray-700 p-2 rounded-lg hover:bg-gray-600 transition duration-300">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-6">Fitur Unggulan</h4>
+                    <ul class="text-gray-400 space-y-3">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>Generate QR Code Instant
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>Real-time Monitoring
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>Pembayaran Otomatis
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>Simulasi Interaktif
+                        </li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-bold mb-6">Kontak</h4>
+                    <ul class="text-gray-400 space-y-3">
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-3 text-blue-400"></i>info@eparking.com
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone mr-3 text-blue-400"></i>+62 812-3456-7890
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-3 text-blue-400"></i>Jakarta, Indonesia
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-10 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 E-Parking System. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Global Variables
+        let parkingSlots = [];
+        let currentTicket = null;
+        let ticketCounter = 1;
+        let activeTickets = 0;
+        let isScanning = false;
+
+        // Vehicle type pricing
+        const vehiclePricing = {
+            motorcycle: 3000,
+            car: 5000,
+            truck: 10000
+        };
+
+        // Vehicle type names
+        const vehicleTypeNames = {
+            motorcycle: 'Motor',
+            car: 'Mobil',
+            truck: 'Truk'
+        };
+
+        // Parking type names
+        const parkingTypeNames = {
+            regular: 'Reguler',
+            reserved: 'Reservasi',
+            priority: 'Prioritas'
+        };
+
+        // Initialize parking slots - 10 slots, all initially empty
+        function initParkingSlots() {
+            const totalSlots = 10;
+            parkingSlots = [];
+            
+            for (let i = 1; i <= totalSlots; i++) {
+                parkingSlots.push({
+                    id: i,
+                    status: 'available',
+                    vehicle: null
+                });
+            }
+            
+            renderParkingSlots();
+            updateDashboard();
+        }
+
+        // Render parking slots
+        function renderParkingSlots() {
+            const dashboardSlots = document.getElementById('dashboard-slots');
+            const simulationSlots = document.getElementById('simulation-slots');
+            
+            dashboardSlots.innerHTML = '';
+            simulationSlots.innerHTML = '';
+            
+            parkingSlots.forEach(slot => {
+                const slotElement = createSlotElement(slot);
+                const slotElementClone = createSlotElement(slot);
+                
+                dashboardSlots.appendChild(slotElement);
+                simulationSlots.appendChild(slotElementClone);
+            });
+        }
+
+        // Create slot element
+        function createSlotElement(slot) {
+            const div = document.createElement('div');
+            div.className = `parking-slot ${slot.status} p-4 rounded-xl text-white text-center font-bold shadow-lg`;
+            div.innerHTML = `
+                <i class="fas fa-car mb-2 text-lg"></i>
+                <div class="text-sm">${slot.id}</div>
+            `;
+            return div;
+        }
+
+        // Update dashboard statistics
+        function updateDashboard() {
+            const total = parkingSlots.length;
+            const occupied = parkingSlots.filter(s => s.status === 'occupied').length;
+            const available = parkingSlots.filter(s => s.status === 'available').length;
+            
+            document.getElementById('total-slots').textContent = total;
+            document.getElementById('total-slots-dash').textContent = total;
+            document.getElementById('available-slots').textContent = available;
+            document.getElementById('available-slots-dash').textContent = available;
+            document.getElementById('occupied-slots').textContent = occupied;
+            document.getElementById('occupied-slots-dash').textContent = occupied;
+            document.getElementById('active-tickets-dash').textContent = activeTickets;
+        }
+
+        // Generate random ticket ID
+        function generateTicketId() {
+            const timestamp = Date.now();
+            const random = Math.floor(Math.random() * 1000);
+            return `EP-${timestamp}-${random}`;
+        }
+
+        // Get current time
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString('id-ID');
+        }
+
+        // Calculate cost
+        function calculateCost(vehicleType, duration) {
+            const pricePerHour = vehiclePricing[vehicleType];
+            return pricePerHour * parseInt(duration);
+        }
+
+        // Format currency
+        function formatCurrency(amount) {
+            return `Rp ${amount.toLocaleString('id-ID')}`;
+        }
+
+        // Generate QR Code
+        function generateQRCode(data, elementId) {
+            const container = document.getElementById(elementId);
+            
+            // Clear previous QR code
+            container.innerHTML = '';
+            
+            // Create QR code
+            try {
+                new QRCode(container, {
+                    text: JSON.stringify(data),
+                    width: elementId === 'qr-code' ? 200 : 100,
+                    height: elementId === 'qr-code' ? 200 : 100,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (error) {
+                console.error('QR Code generation error:', error);
+                container.innerHTML = '<p class="text-red-500">Error generating QR Code</p>';
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('qr-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Clear previous errors
+            document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
+            
+            // Get form values
+            const vehicleNumber = document.getElementById('vehicle-number').value.trim();
+            const vehicleType = document.getElementById('vehicle-type').value;
+            const duration = document.getElementById('duration').value;
+            const parkingType = document.getElementById('parking-type').value;
+            
+            // Validate
+            let isValid = true;
+            
+            if (!vehicleNumber) {
+                showError('vehicle-error', 'Nomor kendaraan harus diisi');
+                isValid = false;
+            }
+            
+            if (!vehicleType) {
+                showError('vehicle-type-error', 'Pilih jenis kendaraan');
+                isValid = false;
+            }
+            
+            if (!duration) {
+                showError('duration-error', 'Pilih durasi parkir');
+                isValid = false;
+            }
+            
+            if (!parkingType) {
+                showError('parking-type-error', 'Pilih jenis parkir');
+                isValid = false;
+            }
+            
+            if (!isValid) return;
+            
+            // Show loading
+            const btnText = document.getElementById('btn-text');
+            const loadingSpinner = document.getElementById('loading-spinner');
+            btnText.textContent = 'Generating...';
+            loadingSpinner.classList.remove('hidden');
+            
+            // Simulate processing
+            setTimeout(() => {
+                // Generate ticket data
+                const ticketId = generateTicketId();
+                const timestamp = getCurrentTime();
+                const cost = calculateCost(vehicleType, duration);
+                
+                const ticketData = {
+                    id: ticketId,
+                    vehicleNumber: vehicleNumber,
+                    vehicleType: vehicleType,
+                    duration: duration,
+                    parkingType: parkingType,
+                    cost: cost,
+                    timestamp: timestamp,
+                    status: 'active'
+                };
+                
+                // Store current ticket
+                currentTicket = ticketData;
+                activeTickets++;
+                updateDashboard();
+                
+                // Update receipt
+                document.getElementById('ticket-id').textContent = `ID: ${ticketId}`;
+                document.getElementById('receipt-vehicle').textContent = vehicleNumber;
+                document.getElementById('receipt-vehicle-type').textContent = vehicleTypeNames[vehicleType];
+                document.getElementById('receipt-duration').textContent = `${duration} Jam`;
+                document.getElementById('receipt-type').textContent = parkingTypeNames[parkingType];
+                document.getElementById('receipt-cost').textContent = formatCurrency(cost);
+                document.getElementById('receipt-time').textContent = timestamp;
+                
+                // Generate QR Code
+                generateQRCode(ticketData, 'qr-code');
+                
+                // Show result
+                document.getElementById('qr-placeholder').classList.add('hidden');
+                document.getElementById('qr-result').classList.remove('hidden');
+                
+                // Update simulation ticket
+                updateSimulationTicket(ticketData);
+                
+                // Update system info
+                updateSystemInfo(`✅ Tiket ${ticketId} berhasil digenerate untuk ${vehicleNumber}. Biaya: ${formatCurrency(cost)}`);
+                
+                // Reset loading
+                btnText.textContent = 'Generate QR Code';
+                loadingSpinner.classList.add('hidden');
+                
+                // Scroll to result
+                document.getElementById('qr-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 1500);
+        });
+
+        // Show error message
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+        }
+
+        // Update simulation ticket
+        function updateSimulationTicket(ticketData) {
+            document.getElementById('sim-ticket-id').textContent = `ID: ${ticketData.id}`;
+            document.getElementById('sim-vehicle').textContent = `Kendaraan: ${ticketData.vehicleNumber}`;
+            document.getElementById('sim-entry-time').textContent = `Generate: ${ticketData.timestamp}`;
+            document.getElementById('sim-status').textContent = 'Status: MENUNGGU SCAN';
+            
+            generateQRCode(ticketData, 'sim-qr-code');
+            
+            document.getElementById('no-ticket').classList.add('hidden');
+            document.getElementById('active-ticket').classList.remove('hidden');
+        }
+
+        // Update system info
+        function updateSystemInfo(message) {
+            const infoEl = document.getElementById('system-info');
+            const timestamp = getCurrentTime();
+            infoEl.innerHTML = `<div class="text-sm"><span class="font-bold text-blue-600">[${timestamp}]</span> ${message}</div>`;
+        }
+
+        // Show scanner overlay
+        function showScanner() {
+            const scannerOverlay = document.getElementById('scanner-overlay');
+            scannerOverlay.classList.add('active');
+            isScanning = true;
+            
+            updateSystemInfo('📱 Scanner aktif. Pindai QR code pada tiket...');
+        }
+
+        // Hide scanner overlay
+        function hideScanner() {
+            const scannerOverlay = document.getElementById('scanner-overlay');
+            scannerOverlay.classList.remove('active');
+            isScanning = false;
+        }
+
+        // Scan QR Code simulation
+        document.getElementById('scan-btn').addEventListener('click', function() {
+            if (!currentTicket) {
+                alert('Tidak ada tiket aktif! Generate QR code terlebih dahulu.');
+                return;
+            }
+            
+            if (currentTicket.status === 'scanned') {
+                alert('Tiket sudah dipindai sebelumnya!');
+                return;
+            }
+            
+            // Show scanner
+            showScanner();
+            
+            // Simulate scanning process
+            setTimeout(() => {
+                hideScanner();
+                
+                // Find available slot
+                const availableSlot = parkingSlots.find(s => s.status === 'available');
+                
+                if (!availableSlot) {
+                    alert('Maaf, tidak ada slot parkir yang tersedia!');
+                    updateSystemInfo('❌ Scan gagal: Tidak ada slot parkir tersedia');
+                    return;
+                }
+                
+                // Assign slot
+                availableSlot.status = 'occupied';
+                availableSlot.vehicle = currentTicket.vehicleNumber;
+                currentTicket.status = 'scanned';
+                currentTicket.slotId = availableSlot.id;
+                currentTicket.entryTime = getCurrentTime();
+                
+                // Animate car
+                const car = document.getElementById('animated-car');
+                car.style.transform = 'translateX(100px)';
+                
+                setTimeout(() => {
+                    car.style.transform = 'translateX(0)';
+                    renderParkingSlots();
+                    updateDashboard();
+                    
+                    // Update simulation status
+                    document.getElementById('sim-status').textContent = `Status: TERPARKIR DI SLOT ${availableSlot.id}`;
+                    
+                    updateSystemInfo(`✅ QR Code berhasil dipindai! Kendaraan ${currentTicket.vehicleNumber} masuk ke slot ${availableSlot.id}`);
+                }, 1500);
+            }, 3000);
+        });
+
+        // Exit simulation
+        document.getElementById('exit-btn').addEventListener('click', function() {
+            if (!currentTicket || currentTicket.status !== 'scanned') {
+                alert('Tidak ada kendaraan yang sedang parkir!');
+                return;
+            }
+            
+            // Show scanner for exit
+            showScanner();
+            
+            // Simulate scanning process for exit
+            setTimeout(() => {
+                hideScanner();
+                
+                // Find and free the slot
+                const slot = parkingSlots.find(s => s.id === currentTicket.slotId);
+                if (slot) {
+                    slot.status = 'available';
+                    slot.vehicle = null;
+                }
+                
+                const exitTime = getCurrentTime();
+                const finalCost = currentTicket.cost;
+                
+                // Animate car exit
+                const car = document.getElementById('animated-car');
+                car.style.transform = 'translateX(200px)';
+                
+                setTimeout(() => {
+                    car.style.transform = 'translateX(0)';
+                    renderParkingSlots();
+                    updateDashboard();
+                    
+                    updateSystemInfo(`✅ Kendaraan ${currentTicket.vehicleNumber} keluar. Total biaya: ${formatCurrency(finalCost)}`);
+                    
+                    // Reset ticket
+                    currentTicket = null;
+                    activeTickets = Math.max(0, activeTickets - 1);
+                    updateDashboard();
+                    
+                    document.getElementById('active-ticket').classList.add('hidden');
+                    document.getElementById('no-ticket').classList.remove('hidden');
+                }, 1500);
+            }, 3000);
+        });
+
+        // Print button
+        document.getElementById('print-btn').addEventListener('click', function() {
+            window.print();
+        });
+
+        // Save QR button
+        document.getElementById('save-btn').addEventListener('click', function() {
+            const qrContainer = document.getElementById('qr-code');
+            const img = qrContainer.querySelector('img');
+            
+            if (img) {
+                const link = document.createElement('a');
+                link.download = `qr-parking-${currentTicket.id}.png`;
+                link.href = img.src;
+                link.click();
+                
+                updateSystemInfo(`✅ QR Code berhasil disimpan: qr-parking-${currentTicket.id}.png`);
+            } else {
+                alert('QR Code tidak ditemukan!');
+            }
+        });
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking on a link
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            initParkingSlots();
+            updateSystemInfo('Sistem E-Parking siap digunakan. Silakan generate QR code untuk memulai.');
+        });
+    </script>
+</body>
+</html>
